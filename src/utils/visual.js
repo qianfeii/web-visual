@@ -100,8 +100,8 @@ export default class VISUAL {
       .outerRadius(_outer)
       .innerRadius(_outer + _inner)
     /** 位置 */
-    let _pieX = _outer + _inner + 20
-    let _pieY = _outer + _inner + 20
+    let _pieX = _outer + _inner + 50
+    let _pieY = _outer + _inner + 50
     if (params.x) {
     }
     let g = svg.append('g').attr('transform', 'translate(' + _pieX + ',' + _pieY + ')')
@@ -136,6 +136,34 @@ export default class VISUAL {
       })
       .attr('dy', '0.35em')
       .text(function(d) {
+        let _format
+        if (params.label && params.label.format) {
+          _format = params.label.format
+          let _regex = /\{(.+?)\}/g
+          let a = d.data.age
+          let b = d.value
+          let p =
+            (Number(d.value) /
+              d3.sum(params.data, function(d) {
+                return Number(d.population)
+              })) *
+            100
+          p = parseFloat(p).toFixed(2)
+          let _arr = _format.match(_regex)
+          _arr.forEach(e => {
+            let _rep = ''
+            if (e === '{a}') {
+              _rep = a
+            } else if (e === '{b}') {
+              _rep = b
+            } else if (e === '{p}') {
+              _rep = p
+            }
+            _format = _format.replace(e, _rep)
+          })
+          console.log(_format)
+          return `${_format}`
+        }
         return d.data.age
       })
       .attr('fill', function(d) {
@@ -202,7 +230,6 @@ export default class VISUAL {
       })
       .attr('dy', '0.35em')
       .text(function(d) {
-        console.log(d)
         return d.data.age
       })
       .attr('fill', function(d) {

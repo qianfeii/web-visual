@@ -20,8 +20,7 @@ export default {
       x: 100,
       y: 40,
       legend: {
-        position: 'bottom', // defaut center  bottom
-        format: '年龄{a}:{b} {p}' // string template with a:name/b:value/p:pencent
+        position: 'bottom' // defaut center  bottom
       },
       title: {
         text: '饼图1-1',
@@ -30,6 +29,9 @@ export default {
         style: {
           color: '#e31a1c'
         }
+      },
+      label: {
+        format: '年龄{a}:{b} {p}' // string template with a:name/b:value/p:pencent
       },
       serious: {
         outer: 150,
