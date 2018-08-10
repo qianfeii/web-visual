@@ -35,7 +35,6 @@ export default class VISUAL {
     if (_width.includes('%')) {
       _width = (parseInt(this._dom.style.width) * parseInt(_width)) / 100
     }
-    console.log(_width)
     let svg = _body
       .append('svg')
       .attr('width', _width)
@@ -65,7 +64,6 @@ export default class VISUAL {
     if (params.style) {
       svg.attr('style', params.style)
     }
-    let g = svg.append('g').attr('transform', 'translate(' + _width / 2 + ',' + _height / 2 + ')')
     /*  颜色  */
     let _color = params.serious && params.serious.color ? params.serious.color : undefined
     let colorArr
@@ -101,7 +99,12 @@ export default class VISUAL {
       .arc()
       .outerRadius(_outer)
       .innerRadius(_outer + _inner)
-
+    /** 位置 */
+    let _pieX = _outer + _inner + 20
+    let _pieY = _outer + _inner + 20
+    if (params.x) {
+    }
+    let g = svg.append('g').attr('transform', 'translate(' + _pieX + ',' + _pieY + ')')
     let arc = g
       .selectAll('.arc')
       .data(pie(data))
@@ -115,7 +118,7 @@ export default class VISUAL {
       .attr('fill', function(d) {
         return color(d.data.age)
       })
-
+    /** lable */
     arc
       .append('text')
       .attr('transform', function(d) {
@@ -146,18 +149,9 @@ export default class VISUAL {
         pos[0] = (_outer + _inner) * (midAngle(d) < Math.PI ? 0.9 : -0.8)
         if (params.serious && params.serious.lineStyle && params.serious.lineStyle.points) {
           let _sty = params.serious.lineStyle.points
-          console.log(_sty)
           if (_sty === 'two') {
             return [path.centroid(d), pos]
           } else if (_sty === 'three') {
-            console.log([
-              path.centroid(d),
-              label.centroid(d),
-              pos,
-              pos,
-              label.centroid(d),
-              path.centroid(d)
-            ])
             return [
               path.centroid(d),
               label.centroid(d),
@@ -175,21 +169,63 @@ export default class VISUAL {
       .attr('stroke', function(d) {
         return color(d.data.age)
       })
-    // let polyline = svg
-    //   .select('.line')
-    //   .selectAll('polyline')
-    //   .data(pie(data))
-    //   .enter()
-    //   .append('polyline')
-    //   .attr('points', function(d) {
-    //     // see label transform function for explanations of these three lines.
-    //     var pos = label.centroid(d)
-    //     pos[0] = (_outer + _inner) * 0.9 * (midAngle(d) < Math.PI ? 1 : -1)
-    //     console.log(pos)
-    //     return [label.centroid(d), pos, [10, 10]]
-    //   })
-    //   .attr('fill', function(d) {
-    //     return color(d.data.age)
-    //   })
+    /** draw  legend */
+    let _legPos = []
+    _legPos[0] = _width - 100
+    if (params.legend && params.legend.position) {
+      let _pos = params.legend.position
+      if (_pos === 'top') {
+        _legPos[1] = 20
+      } else if (_pos === 'center') {
+        _legPos[1] = _height / 2
+      } else if (_pos === 'bottom') {
+        _legPos[1] = _height - 30 * params.data.length
+      }
+    } else {
+      _legPos[1] = 20
+    }
+    let legend = svg.append('g').attr('transform', 'translate(' + _legPos + ')')
+    let legendArc = legend
+      .selectAll('.arc')
+      .data(pie(data))
+      .enter()
+      .append('g')
+      .attr('class', 'arc')
+
+    legendArc
+      .append('text')
+      .attr('transform', function(d) {
+        let _pos = []
+        _pos[0] = 40
+        _pos[1] = 30 * d.index
+        return 'translate(' + _pos + ')'
+      })
+      .attr('dy', '0.35em')
+      .text(function(d) {
+        console.log(d)
+        return d.data.age
+      })
+      .attr('fill', function(d) {
+        return color(d.data.age)
+      })
+    /** symbol */
+    let symbolAd = d3
+      .symbol()
+      .size(300)
+      .type(d3.symbolSquare)
+    legendArc
+      .append('path')
+      .attr('transform', function(d) {
+        let _pos = []
+        _pos[0] = 20
+        _pos[1] = 30 * d.index
+        return 'translate(' + _pos + ')'
+      })
+      .attr('d', function(d) {
+        return symbolAd()
+      })
+      .attr('fill', function(d) {
+        return color(d.data.age)
+      })
   }
 }

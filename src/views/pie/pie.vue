@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>PIE</h2>
-    <div ref="pie" class="pie-area" style="width:700px;height:700px"></div>
+    <div ref="pie" class="pie-area" style="width:800px;height:700px"></div>
   </div>
 </template>
 <script>
@@ -15,8 +15,14 @@ export default {
     let _this = this
     let params = {
       type: 'pie',
-      width: '90%',
+      width: '100%',
       height: 600,
+      x: 100,
+      y: 40,
+      legend: {
+        position: 'bottom', // defaut center  bottom
+        format: '年龄{a}:{b} {p}' // string template with a:name/b:value/p:pencent
+      },
       title: {
         text: '饼图1-1',
         x: 'left',
