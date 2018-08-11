@@ -25,15 +25,28 @@ export default class VISUAL {
     let _body = d3.select(_this._dom)
     let _width = params.width ? params.width : parseInt(this._dom.style.width)
     let _height = params.height ? params.height : parseInt(this._dom.style.height)
-    let _radius = Math.min(_width, _height) / 2
-    /*  大小  */
-    let _outer = params.serious && params.serious.outer ? params.serious.outer : _radius - 10
-    let _inner = params.serious && params.serious.inner ? params.serious.inner : _radius - 100
-    if (_outer < _inner) {
-      throw new Error(`外圈大小小于内圈`)
-    }
     if (_width.includes('%')) {
       _width = (parseInt(this._dom.style.width) * parseInt(_width)) / 100
+    }
+    let _radius = Math.min(_width, _height) / 2
+    /*  大小 含判断 圆或圆环 */
+    let ringSize = params.serious && params.serious.ringSize ? params.serious.ringSize : 50
+    let _outer = params.serious && params.serious.outer ? params.serious.outer : _radius / 1.5
+    let _inner =
+      params.serious && params.serious.inner ? params.serious.inner : _radius / 1.5 - ringSize
+    if (params.serious && params.serious.type) {
+      let _ty = params.serious.type
+      if (_ty === 'round') {
+        _inner = 0
+      } else if (_ty === 'ring') {
+      } else {
+        _inner = 0
+      }
+    } else {
+      _inner = 0
+    }
+    if (_outer < _inner) {
+      throw new Error(`外圈大小小于内圈`)
     }
     let svg = _body
       .append('svg')
@@ -90,6 +103,9 @@ export default class VISUAL {
       .value(function(d) {
         return d.population
       })
+      .padAngle(function(d) {
+        return 0.01
+      })
     let path = d3
       .arc()
       .outerRadius(_outer)
@@ -100,9 +116,13 @@ export default class VISUAL {
       .outerRadius(_outer)
       .innerRadius(_outer + _inner)
     /** 位置 */
-    let _pieX = _outer + _inner + 50
-    let _pieY = _outer + _inner + 50
+    let _pieX = _width / 2 - 30
+    let _pieY = _height / 2
     if (params.x) {
+      _pieX = _pieX + params.x
+    }
+    if (params.y) {
+      _pieY = _pieY + params.y
     }
     let g = svg.append('g').attr('transform', 'translate(' + _pieX + ',' + _pieY + ')')
     let arc = g
@@ -131,7 +151,16 @@ export default class VISUAL {
         // return 'translate(' + (x / h) * labelr + ',' + (y / h) * labelr + ')'
         /**  标签规整 */
         let pos = label.centroid(d)
-        pos[0] = (_outer + _inner) * (midAngle(d) < Math.PI ? 1 : -1)
+        pos[0] = (_outer + 100) * (midAngle(d) < Math.PI ? 0.8 : -1.18)
+        pos[1] = pos[1] - 10
+        if (
+          params.serious &&
+          params.serious.type === 'round' &&
+          params.serious.lineStyle &&
+          params.serious.lineStyle.points === 'three'
+        ) {
+          pos[1] = pos[1] - 40
+        }
         return 'translate(' + pos + ')'
       })
       .attr('dy', '0.35em')
@@ -161,7 +190,6 @@ export default class VISUAL {
             }
             _format = _format.replace(e, _rep)
           })
-          console.log(_format)
           return `${_format}`
         }
         return d.data.age
@@ -169,18 +197,26 @@ export default class VISUAL {
       .attr('fill', function(d) {
         return color(d.data.age)
       })
-    /* line */
+    /* label line */
     arc
       .append('polyline')
       .attr('points', function(d) {
         let pos = label.centroid(d)
-        pos[0] = (_outer + _inner) * (midAngle(d) < Math.PI ? 0.9 : -0.8)
+        pos[0] = (_outer + 100) * (midAngle(d) < Math.PI ? 0.9 : -1)
         if (params.serious && params.serious.lineStyle && params.serious.lineStyle.points) {
           let _sty = params.serious.lineStyle.points
           if (_sty === 'two') {
-            return [path.centroid(d), pos]
+            let _r
+            if (params.serious.type === 'ring') {
+              _r = [path.centroid(d), pos]
+            } else if (params.serious.type === 'round') {
+              _r = [label.centroid(d), pos]
+            } else {
+              _r = [path.centroid(d), pos]
+            }
+            return _r
           } else if (_sty === 'three') {
-            return [
+            let _r = [
               path.centroid(d),
               label.centroid(d),
               pos,
@@ -188,9 +224,35 @@ export default class VISUAL {
               label.centroid(d),
               path.centroid(d)
             ]
+            if (params.serious.type === 'round') {
+              let pos2 = label.centroid(d)
+              pos2[0] = _outer * (midAngle(d) < Math.PI ? 0.9 : -1)
+              pos2[1] = pos2[1] - 40
+              pos[1] = pos[1] - 40
+              _r = [label.centroid(d), pos2, pos, pos, pos2, label.centroid(d)]
+            }
+            return _r
+          } else {
+            let _r
+            if (params.serious.type === 'ring') {
+              _r = [path.centroid(d), pos]
+            } else if (params.serious.type === 'round') {
+              _r = [label.centroid(d), pos]
+            } else {
+              _r = [path.centroid(d), pos]
+            }
+            return _r
           }
         } else {
-          return [path.centroid(d), pos]
+          let _r
+          if (params.serious.type === 'ring') {
+            _r = [path.centroid(d), pos]
+          } else if (params.serious.type === 'round') {
+            _r = [label.centroid(d), pos]
+          } else {
+            _r = [path.centroid(d), pos]
+          }
+          return _r
         }
       })
       .attr('stroke-width', 1)
@@ -219,6 +281,14 @@ export default class VISUAL {
       .enter()
       .append('g')
       .attr('class', 'arc')
+      .attr('style', 'cursor: pointer;')
+      .on(
+        'click',
+        function(d) {
+          console.log('click on legend==>>>', d, pie(data))
+        },
+        false
+      )
 
     legendArc
       .append('text')

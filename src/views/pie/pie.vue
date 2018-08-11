@@ -1,7 +1,8 @@
 <template>
   <div>
     <h2>PIE</h2>
-    <div ref="pie" class="pie-area" style="width:800px;height:700px"></div>
+    <div ref="pie" class="pie-area" style="width:800px;height:700px">
+    </div>
   </div>
 </template>
 <script>
@@ -17,10 +18,10 @@ export default {
       type: 'pie',
       width: '100%',
       height: 600,
-      x: 100,
+      x: 10, // defalu center .result=center+x
       y: 40,
       legend: {
-        position: 'bottom' // defaut center  bottom
+        position: 'top' // defaut center  bottom
       },
       title: {
         text: '饼图1-1',
@@ -31,14 +32,16 @@ export default {
         }
       },
       label: {
-        format: '年龄{a}:{b} {p}' // string template with a:name/b:value/p:pencent
+        format: '年龄:{a}' // string template with a:name/b:value/p:pencent
       },
       serious: {
-        outer: 150,
-        inner: 80,
+        type: 'round', // round 圆  ring 环
+        // outer: 150,
+        // inner: 80, // type=ring 生效
+        ringSize: 100, // default 50
         color: ['#a6cee3', '#1f78b4', '#9a169f', '#feb82c', '#33a02c', '#fb9a99', '#38049a'],
         lineStyle: {
-          points: 'three' // default two
+          points: 'two' // default two
         }
       },
       style: 'margin-top:20px',
@@ -84,6 +87,7 @@ export default {
 </script>
 
 <style lang="postcss" scoped>
+@import '../../styles/pie.pcss';
 h2 {
   color: blueviolet;
 }
@@ -95,6 +99,9 @@ h2 {
   color: red;
   margin: 10px auto 0 auto;
   border: 1px solid red;
+  .ss {
+    color: yellow;
+  }
 }
 
 polyline {
