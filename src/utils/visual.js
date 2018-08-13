@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 const pieCase = Symbol('pieCase')
+const verifyData = Symbol('verifyData')
+const getType = Symbol('getType')
 const midAngle = d => {
   return d.startAngle + (d.endAngle - d.startAngle) / 2
 }
@@ -22,10 +24,11 @@ export default class VISUAL {
   baseFun() {}
   [pieCase](params) {
     let _this = this
+    _this[verifyData](params)
     let _body = d3.select(_this._dom)
-    let _width = params.width ? params.width : parseInt(this._dom.style.width)
-    let _height = params.height ? params.height : parseInt(this._dom.style.height)
-    if (_width.includes('%')) {
+    let _width = params.width ? params.width : parseInt(_this._dom.style.width)
+    let _height = params.height ? params.height : parseInt(_this._dom.style.height)
+    if (_width.toString().includes('%')) {
       _width = (parseInt(this._dom.style.width) * parseInt(_width)) / 100
     }
     let _radius = Math.min(_width, _height) / 2
@@ -101,7 +104,7 @@ export default class VISUAL {
       .pie()
       .sort(null)
       .value(function(d) {
-        return d.population
+        return d.value
       })
       .padAngle(function(d) {
         return 0.01
@@ -136,7 +139,7 @@ export default class VISUAL {
       .append('path')
       .attr('d', path)
       .attr('fill', function(d) {
-        return color(d.data.age)
+        return color(d.data.type)
       })
     /** lable */
     arc
@@ -169,12 +172,12 @@ export default class VISUAL {
         if (params.label && params.label.format) {
           _format = params.label.format
           let _regex = /\{(.+?)\}/g
-          let a = d.data.age
+          let a = d.data.type
           let b = d.value
           let p =
             (Number(d.value) /
               d3.sum(params.data, function(d) {
-                return Number(d.population)
+                return Number(d.value)
               })) *
             100
           p = parseFloat(p).toFixed(2)
@@ -192,10 +195,10 @@ export default class VISUAL {
           })
           return `${_format}`
         }
-        return d.data.age
+        return d.data.type
       })
       .attr('fill', function(d) {
-        return color(d.data.age)
+        return color(d.data.type)
       })
     /* label line */
     arc
@@ -257,11 +260,11 @@ export default class VISUAL {
       })
       .attr('stroke-width', 1)
       .attr('stroke', function(d) {
-        return color(d.data.age)
+        return color(d.data.type)
       })
     /** draw  legend */
     let _legPos = []
-    _legPos[0] = _width - 100
+    _legPos[0] = _width - 120
     if (params.legend && params.legend.position) {
       let _pos = params.legend.position
       if (_pos === 'top') {
@@ -272,7 +275,7 @@ export default class VISUAL {
         _legPos[1] = _height - 30 * params.data.length
       }
     } else {
-      _legPos[1] = 20
+      _legPos[1] = _height - 30 * params.data.length
     }
     let legend = svg.append('g').attr('transform', 'translate(' + _legPos + ')')
     let legendArc = legend
@@ -294,21 +297,22 @@ export default class VISUAL {
       .append('text')
       .attr('transform', function(d) {
         let _pos = []
-        _pos[0] = 40
+        _pos[0] = 30
         _pos[1] = 30 * d.index
         return 'translate(' + _pos + ')'
       })
       .attr('dy', '0.35em')
       .text(function(d) {
-        return d.data.age
+        return d.data.type
       })
       .attr('fill', function(d) {
-        return color(d.data.age)
+        return color(d.data.type)
       })
+      .attr('font-size', '12px')
     /** symbol */
     let symbolAd = d3
       .symbol()
-      .size(300)
+      .size(100)
       .type(d3.symbolSquare)
     legendArc
       .append('path')
@@ -322,7 +326,148 @@ export default class VISUAL {
         return symbolAd()
       })
       .attr('fill', function(d) {
-        return color(d.data.age)
+        return color(d.data.type)
       })
+  }
+  [verifyData](params) {
+    let _this = this
+    let _outerW = parseFloat(_this._dom.style.width)
+    let _outerH = parseInt(_this._dom.style.height)
+    let _keys = Object.keys(params)
+    for (let i = 0; i < _keys.length; i++) {
+      let key = _keys[i]
+      let val = params[key]
+      let type = _this[getType](val)
+      switch (key) {
+        case 'width':
+          if (type === undefined) {
+            console.log('非法')
+            params[key] = _outerW
+          } else if (type === 'string' && !val.includes('%')) {
+            let reg = /^[0-9]+$/
+            if (reg.test(val)) {
+              console.log('纯数字字符串')
+              params[key] = parseFloat(val)
+            } else {
+              console.log('不含% 非数字字符串')
+              params[key] = _outerW
+            }
+          } else if (type === 'string' && val.includes('%')) {
+            let _arr = val.split('%')
+            console.log(_arr)
+            if (_arr.length > 2) {
+              console.log('% 不合法')
+              params[key] = _outerW
+            } else {
+              let reg = /^[0-9]+$/
+              if (reg.test(_arr[0])) {
+                console.log('%  纯数字字符串')
+                if (parseInt(_arr[0]) <= 100) {
+                  params[key] = (_outerW * parseInt(_arr[0])) / 100
+                } else {
+                  params[key] = _outerW
+                }
+              } else {
+                console.log('% 非数字字符串')
+                params[key] = _outerW
+              }
+            }
+          } else if (type === 'object') {
+            console.log('对象')
+            params[key] = _outerW
+          }
+          break
+        case 'height':
+          if (type === undefined) {
+            params[key] = _outerH
+          } else if (type === 'string' && !val.includes('%')) {
+            let reg = /^[0-9]+$/
+            if (reg.test(val)) {
+              params[key] = parseFloat(val)
+            } else {
+              params[key] = _outerH
+            }
+          } else if (type === 'string' && val.includes('%')) {
+            let _arr = val.split('%')
+            if (_arr.length > 2) {
+              params[key] = _outerH
+            } else {
+              let reg = /^[0-9]+$/
+              if (reg.test(_arr[0])) {
+                if (parseInt(_arr[0]) <= 100) {
+                  params[key] = (_outerH * parseInt(_arr[0])) / 100
+                } else {
+                  params[key] = _outerH
+                }
+              } else {
+                params[key] = _outerH
+              }
+            }
+          } else if (type === 'object') {
+            console.log('对象')
+            params[key] = _outerH
+          }
+          break
+        case 'x':
+          if (type === undefined) {
+            params[key] = 0
+          } else if (type === 'string') {
+            let reg = /^[0-9]+$/
+            if (reg.test(val)) {
+              console.log('纯数字字符串')
+              params[key] = parseFloat(val)
+            } else {
+              console.log('不含% 非数字字符串')
+              params[key] = 0
+            }
+          } else if (type === 'object') {
+            params[key] = 0
+          }
+          break
+        case 'y':
+          if (type === undefined) {
+            params[key] = 0
+          } else if (type === 'string') {
+            let reg = /^[0-9]+$/
+            if (reg.test(val)) {
+              console.log('纯数字字符串')
+              params[key] = parseFloat(val)
+            } else {
+              console.log('不含% 非数字字符串')
+              params[key] = 0
+            }
+          } else if (type === 'object') {
+            params[key] = 0
+          }
+          break
+        case 'legend':
+          if (type !== 'object') {
+            console.log('legend 不是object')
+            params[key] = {}
+          }
+          break
+        case 'title':
+          if (type !== 'object') {
+            params[key] = {}
+          }
+          break
+        default:
+          break
+      }
+    }
+  }
+  [getType](val) {
+    if (typeof val === 'number' && !Number.isFinite(val)) {
+      console.log('值为Infinity')
+      return undefined // throw new Error('值为Infinity')
+    } else if (Number.isNaN(val)) {
+      return undefined // throw new Error('值为NaN')
+    } else if (val === null) {
+      return undefined // throw new Error('值为null')
+    } else if (val === '') {
+      return undefined // throw new Error('值为空')
+    } else {
+      return typeof val
+    }
   }
 }

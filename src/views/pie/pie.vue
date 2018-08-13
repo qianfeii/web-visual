@@ -16,63 +16,54 @@ export default {
     let _this = this
     let params = {
       type: 'pie',
-      width: '100%',
+      width: '100%', // default or error set ,width is outer ele width
       height: 600,
-      x: 10, // defalu center .result=center+x
+      x: '0', // defalu center .result=center+x
       y: 40,
       legend: {
-        position: 'top' // defaut center  bottom
+        position: 'top' // defaut center , bottom
       },
       title: {
         text: '饼图1-1',
-        x: 'left',
         y: 10,
         style: {
           color: '#e31a1c'
         }
       },
       label: {
-        format: '年龄:{a}' // string template with a:name/b:value/p:pencent
+        format: '类别:{a}' // string template with a:name/b:value/p:pencent
       },
       serious: {
         type: 'round', // round 圆  ring 环
-        // outer: 150,
-        // inner: 80, // type=ring 生效
-        ringSize: 100, // default 50
+        // outer: 200,
+        // inner: 1, // type=ring 生效
+        // ringSize: 100, // default 50
         color: ['#a6cee3', '#1f78b4', '#9a169f', '#feb82c', '#33a02c', '#fb9a99', '#38049a'],
         lineStyle: {
-          points: 'two' // default two
+          points: 'two' // default two ,with three
         }
       },
       style: 'margin-top:20px',
       data: [
         {
-          age: '<5',
-          population: 27
+          type: '易购销售额',
+          value: 48
         },
         {
-          age: '5-13',
-          population: 23
+          type: '门店销售额',
+          value: 22
         },
         {
-          age: '13-17',
-          population: 32
+          type: '天猫销售额',
+          value: 15
         },
         {
-          age: '17-24',
-          population: 55
+          type: '零售云销售额',
+          value: 10
         },
         {
-          age: '24-44',
-          population: 35
-        },
-        {
-          age: '45-64',
-          population: 66
-        },
-        {
-          age: '>64',
-          population: 37
+          type: '当当网销售额',
+          value: 5
         }
       ]
     }
