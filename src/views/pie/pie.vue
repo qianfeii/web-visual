@@ -34,13 +34,13 @@ export default {
         format: '类别:{a}' // string template with a:name/b:value/p:pencent
       },
       serious: {
-        type: 'round', // round 圆  ring 环
+        type: 'ring', // round 圆  ring 环
         // outer: 200,
         // inner: 1, // type=ring 生效
-        // ringSize: 100, // default 50
+        ringSize: 100, // default 50
         color: ['#a6cee3', '#1f78b4', '#9a169f', '#feb82c', '#33a02c', '#fb9a99', '#38049a'],
         lineStyle: {
-          points: 'two' // default two ,with three
+          points: 'three' // default two ,with three
         }
       },
       style: 'margin-top:20px',

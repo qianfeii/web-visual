@@ -22,7 +22,7 @@ export default class VISUAL {
     }
   }
   baseFun() {}
-  [pieCase](params) {
+  [pieCase](params = { serious: {} }) {
     let _this = this
     _this[verifyData](params)
     let _body = d3.select(_this._dom)
